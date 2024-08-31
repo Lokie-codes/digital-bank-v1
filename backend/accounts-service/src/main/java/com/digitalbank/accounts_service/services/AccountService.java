@@ -1,13 +1,16 @@
 package com.digitalbank.accounts_service.services;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.digitalbank.accounts_service.clients.UserClient;
 import com.digitalbank.accounts_service.DTO.AccountDTO;
 import com.digitalbank.accounts_service.DTO.UserDTO;
 import com.digitalbank.accounts_service.models.Account;
-import com.digitalbank.accounts_service.models.User;
 import com.digitalbank.accounts_service.repositories.AccountRepository;
-import com.digitalbank.accounts_service.repositories.UserRepository;
+
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.WebApplicationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,110 +18,199 @@ import java.util.*;
 
 @Service
 public class AccountService {
-    User user1 = new User(1L, "samsher007@google.com", "Sam", "Bahadur", "+91987654321", "samy69", "Sheila@143");
-    User user2 = new User(2L, "lokeshs@yahoo.com", "Lokesh", "S", "+918884227157", "lokiee", "Lokesh@13579");
-    User user3 = new User(3L, "yuva.shree@gmail.com", "Yuvashree", "Ramachandran", "+919988776655", "yuva", "Yuva@111");
-
 
     private final AccountRepository accountRepository;
-    private final UserRepository userRepository;
-    public AccountService(AccountRepository accountRepository, UserRepository userRepository) {
+    private final UserClient userClient;
+
+    public AccountService(AccountRepository accountRepository, UserClient userClient) {
         this.accountRepository = accountRepository;
-        this.userRepository = userRepository;
-        userRepository.save(user1);
-        userRepository.save(user2);
-        userRepository.save(user3);
+        this.userClient = userClient;
     }
 
     public ResponseEntity<?> createAccount(Account account) {
-        if(account.getCustomerId() == null) {
-            Map<String, String> errors = new HashMap<>();
-            errors.put("customerId", "The customer id is mandatory");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(errors);
-        } else if(!userRepository.existsById(account.getCustomerId())) {
-            Map<String, String> errors = new HashMap<>();
-            errors.put("customerId", "Customer with customer id "+ account.getCustomerId() + " does not exist");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(errors);
+        Map<String, String> errors = validateAccount(account);
+        if (!errors.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         }
 
-        if(account.getAccountType() == null) {
-            Map<String, String> errors = new HashMap<>();
-            errors.put("accountType", "The account type is mandatory");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(errors);
+        UserDTO userDTO = fetchUserById(account.getCustomerId());
+        if (userDTO == null || userDTO.getId() == null) {
+            errors.put("customerId", "The customer ID is not valid");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         }
-        if(account.getCurrency() == null) {
+
+        setupAccountDefaults(account);
+        account.setAccountNumber(generateUniqueAccountNumber());
+
+        Account registeredAccount = accountRepository.save(account);
+        AccountDTO accountDTO = mapToAccountDTO(registeredAccount, userDTO);
+
+        return ResponseEntity.ok(accountDTO);
+    }
+
+    private Map<String, String> validateAccount(Account account) {
+        Map<String, String> errors = new HashMap<>();
+
+        if (account.getCustomerId() == null || account.getCustomerId().longValue() <= 0) {
+            errors.put("customerId", "The customer ID is mandatory and must be valid");
+        }
+
+        if (account.getAccountType() == null || account.getAccountType().isEmpty()) {
+            errors.put("accountType", "The account type is mandatory and must be valid");
+        }
+
+        if (account.getCurrency() != null && account.getCurrency().isEmpty()) {
+            errors.put("currency", "The currency must be valid");
+        }
+
+        return errors;
+    }
+
+    private UserDTO fetchUserById(Long customerId) {
+        try {
+            return userClient.findById(customerId);
+        } catch (BadRequestException e) {
+            throw new BadRequestException("Improper request. Please check the customer ID for Account service.");
+        } catch (NotFoundException e) {
+            throw new NotFoundException("Requested customer not found in Account service.");
+        } catch (WebApplicationException e) {
+            throw new WebApplicationException("Request failed. Please check the request for Account service.");
+        } catch (Exception e) {
+            throw new RuntimeException("Something went wrong!");
+        }
+    }
+
+    private void setupAccountDefaults(Account account) {
+        if (account.getCurrency() == null) {
             account.setCurrency("INR");
         }
-        if(account.getBalance() == null) {
-            account.setBalance(BigDecimal.valueOf(0));
+
+        if (account.getBalance() == null) {
+            account.setBalance(BigDecimal.ZERO);
         }
-        int accountNumber = generateUniqueAccountNumber();
-        account.setAccountNumber(accountNumber);
+    }
 
-
-        Account registeredAccount =  accountRepository.save(account);
+    private AccountDTO mapToAccountDTO(Account account, UserDTO userDTO) {
         AccountDTO accountDTO = new AccountDTO();
-        accountDTO.setAccountId(registeredAccount.getId());
+        accountDTO.setAccountId(account.getId());
         accountDTO.setAccountType(account.getAccountType());
         accountDTO.setCurrency(account.getCurrency());
         accountDTO.setBalance(account.getBalance());
         accountDTO.setAccountNumber(account.getAccountNumber());
-        UserDTO userDTO = new UserDTO();
-        if(userRepository.existsById(registeredAccount.getCustomerId())) {
-            User user = userRepository.getReferenceById(registeredAccount.getId());
-            userDTO.setId(user.getId());
-            userDTO.setEmail(user.getEmail());
-            userDTO.setUsername(user.getUsername());
-            userDTO.setFirstName(user.getFirstName());
-            userDTO.setLastName(user.getLastName());
-            userDTO.setPhone(user.getPhone());
-        }
         accountDTO.setAccountHolder(userDTO);
-        return ResponseEntity.ok(accountDTO);
+        return accountDTO;
     }
 
     private int generateUniqueAccountNumber() {
         Random random = new Random();
         int accountNumber;
-        do{
-            accountNumber = 10000000 + random.nextInt(10000000); // 8 digit account number
+        do {
+            accountNumber = 10000000 + random.nextInt(90000000); // 8-digit account number
         } while (accountRepository.existsByAccountNumber(accountNumber));
         return accountNumber;
+    }
+
+    public ResponseEntity<?> updateAccount(Long id, Account newAccount) {
+        Optional<Account> existingAccount = accountRepository.findById(id);
+        if (existingAccount.isPresent()) {
+            Account accountToUpdate = existingAccount.get();
+            accountToUpdate.setAccountType(newAccount.getAccountType());
+            accountToUpdate.setBalance(newAccount.getBalance());
+            accountToUpdate.setCurrency(newAccount.getCurrency());
+            accountRepository.save(accountToUpdate);
+            return ResponseEntity.ok(accountToUpdate);
+        } else {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "No account found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    public ResponseEntity<?> deleteAccount(Long id) {
+        if (accountRepository.existsById(id)) {
+            accountRepository.deleteById(id);
+            Map<String, String> message = new HashMap<>();
+            message.put("message", "Account deleted successfully");
+            return ResponseEntity.ok(message);
+        } else {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "No account found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
     }
 
     public ResponseEntity<?> getAllAccounts() {
         List<Account> accounts = accountRepository.findAll();
         if (accounts.isEmpty()) {
             Map<String, String> response = new HashMap<>();
-            response.put("message", "No accounts found");
-            return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                    .body(response);
+            response.put("error", "No accounts found");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
         }
+
         List<AccountDTO> accountDTOs = new ArrayList<>();
         for (Account account : accounts) {
-            AccountDTO accountDTO = new AccountDTO();
-            accountDTO.setAccountId(account.getId());
-            accountDTO.setBalance(account.getBalance());
-            accountDTO.setAccountType(account.getAccountType());
-            accountDTO.setAccountNumber(account.getAccountNumber());
-            accountDTO.setCurrency(account.getCurrency());
-
-            User user = userRepository.getReferenceById(account.getCustomerId());
-            UserDTO userDTO = new UserDTO();
-            if(userRepository.existsById(user.getId())) {
-                 userDTO.setFirstName(user.getFirstName());
-                 userDTO.setLastName(user.getLastName());
-                 userDTO.setEmail(user.getEmail());
-                 userDTO.setId(user.getId());
-                 userDTO.setPhone(user.getPhone());
-                 userDTO.setUsername(user.getUsername());
-            }
-            accountDTO.setAccountHolder(userDTO);
+            UserDTO accountHolder = userClient.findById(account.getCustomerId());
+            AccountDTO accountDTO = mapToAccountDTO(account, accountHolder);
             accountDTOs.add(accountDTO);
         }
+
+        return ResponseEntity.ok(accountDTOs);
+    }
+
+    public ResponseEntity<?> getAccountById(Long id) {
+        Optional<Account> account = accountRepository.findById(id);
+        if (account.isPresent()) {
+            UserDTO accountHolder = userClient.findById(account.get().getCustomerId());
+            AccountDTO accountDTO = mapToAccountDTO(account.get(), accountHolder);
+            return ResponseEntity.ok(accountDTO);
+        } else {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "No account found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    public ResponseEntity<?> getAccountByAccountNumber(int accountNumber) {
+        Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
+        if (account.isPresent()) {
+            UserDTO accountHolder = userClient.findById(account.get().getCustomerId());
+            AccountDTO accountDTO = mapToAccountDTO(account.get(), accountHolder);
+            return ResponseEntity.ok(accountDTO);
+        } else {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "No account found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    public ResponseEntity<?> searchAccounts(int accountNumber, Long customerId, String accountType, String currency) {
+        List<Account> accounts = accountRepository.findAll();
+        if (accounts.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "No accounts found");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+        }
+
+        List<AccountDTO> accountDTOs = new ArrayList<>();
+        for (Account account : accounts) {
+            if (accountNumber != 0 && account.getAccountNumber() != accountNumber) {
+                continue;
+            }
+            if (customerId != null && !account.getCustomerId().equals(customerId)) {
+                continue;
+            }
+            if (accountType != null && !account.getAccountType().equals(accountType)) {
+                continue;
+            }
+            if (currency != null && !account.getCurrency().equals(currency)) {
+                continue;
+            }
+
+            UserDTO accountHolder = userClient.findById(account.getCustomerId());
+            AccountDTO accountDTO = mapToAccountDTO(account, accountHolder);
+            accountDTOs.add(accountDTO);
+        }
+
         return ResponseEntity.ok(accountDTOs);
     }
 }
