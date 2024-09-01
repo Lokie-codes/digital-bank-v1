@@ -8,22 +8,26 @@ import com.digitalbank.user_service.repositories.UserRepository;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.WebApplicationException;
+import java.util.*;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.*;
-import java.util.regex.Pattern;
-
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-    private final Pattern emailPattern = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+    private final Pattern emailPattern = Pattern.compile(
+        "^[A-Za-z0-9+_.-]+@(.+)$"
+    );
     private final AgentNameClient agentNameClient;
 
-    public UserService(UserRepository userRepository, AgentNameClient agentNameClient) {
+    public UserService(
+        UserRepository userRepository,
+        AgentNameClient agentNameClient
+    ) {
         this.userRepository = userRepository;
         this.agentNameClient = agentNameClient;
     }
@@ -49,7 +53,9 @@ public class UserService {
 
     private String generateUsername(String fallbackUsername) {
         if (agentNameClient == null) {
-            System.out.println("Agent name generating service not found. Setting username to email.");
+            System.out.println(
+                "Agent name generating service not found. Setting username to email."
+            );
             return fallbackUsername.toLowerCase(Locale.ROOT);
         }
 
@@ -61,13 +67,25 @@ public class UserService {
             } while (userRepository.findByUsername(username).isPresent());
             return username;
         } catch (BadRequestException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Improper request. Please check the request for Agent name generating service.");
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Improper request. Please check the request for Agent name generating service."
+            );
         } catch (NotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested resource not found for Agent name generating service.");
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Requested resource not found for Agent name generating service."
+            );
         } catch (WebApplicationException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Request failed. Please check the request for Agent name generating service.");
+            System.out.println(
+                "Agent name generating service is down. Setting username to email."
+            );
+            return fallbackUsername.toLowerCase(Locale.ROOT);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong!");
+            System.out.println(
+                "An error occurred while generating username. Setting username to email."
+            );
+            return fallbackUsername.toLowerCase(Locale.ROOT);
         }
     }
 
@@ -87,11 +105,18 @@ public class UserService {
         } else if (!isEmailValid(email)) {
             errors.put("email", "Invalid email format");
         } else if (userRepository.findByEmail(email).isPresent()) {
-            errors.put("email", "Email is already in use. Please try a different email");
+            errors.put(
+                "email",
+                "Email is already in use. Please try a different email"
+            );
         }
     }
 
-    private void validateField(String fieldName, String value, Map<String, String> errors) {
+    private void validateField(
+        String fieldName,
+        String value,
+        Map<String, String> errors
+    ) {
         if (value == null || value.isEmpty()) {
             errors.put(fieldName, fieldName + " is required");
         }
@@ -101,7 +126,10 @@ public class UserService {
         if (phone == null || phone.isEmpty()) {
             errors.put("phone", "Phone is required");
         } else if (!phone.matches("^[+][0-9]{10,13}$")) {
-            errors.put("phone", "Enter a valid phone number with country code (e.g., +919876543210)");
+            errors.put(
+                "phone",
+                "Enter a valid phone number with country code (e.g., +919876543210)"
+            );
         }
     }
 
@@ -109,7 +137,10 @@ public class UserService {
         if (password == null || password.isEmpty()) {
             errors.put("password", "Password is required");
         } else if (!isPasswordValid(password)) {
-            errors.put("password", "Password must be 8-16 characters long, contain at least one digit, one uppercase letter, and one special character");
+            errors.put(
+                "password",
+                "Password must be 8-16 characters long, contain at least one digit, one uppercase letter, and one special character"
+            );
         }
     }
 
@@ -118,25 +149,32 @@ public class UserService {
     }
 
     private boolean isPasswordValid(String password) {
-        return password.length() >= 8 && password.length() <= 16 &&
-                password.matches(".*\\d.*") &&
-                password.matches(".*[A-Z].*") &&
-                password.matches(".*[._!@#$%^&*()?,].*");
+        return (
+            password.length() >= 8 &&
+            password.length() <= 16 &&
+            password.matches(".*\\d.*") &&
+            password.matches(".*[A-Z].*") &&
+            password.matches(".*[._!@#$%^&*()?,].*")
+        );
     }
 
     public ResponseEntity<?> getUserById(Long id) {
-        if(!userRepository.existsById(id)) {
+        if (!userRepository.existsById(id)) {
             Map<String, String> errors = new HashMap<>();
             errors.put("error", "User with id " + id + " not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
         }
-        return ResponseEntity.ok(convertToDTO(userRepository.getReferenceById(id)));
+        return ResponseEntity.ok(
+            convertToDTO(userRepository.getReferenceById(id))
+        );
     }
 
     public ResponseEntity<?> getAllUsers() {
         List<User> users = userRepository.findAll();
         if (users.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("error", "No users found"));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
+                Map.of("error", "No users found")
+            );
         }
 
         List<UserDTO> userDTOs = new ArrayList<>();
@@ -146,7 +184,7 @@ public class UserService {
 
     public ResponseEntity<?> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
-        if(user.isEmpty()) {
+        if (user.isEmpty()) {
             Map<String, String> errors = new HashMap<>();
             errors.put("error", "User with email " + email + " not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
@@ -156,7 +194,7 @@ public class UserService {
 
     public ResponseEntity<?> getUserByPhone(String phone) {
         Optional<User> user = userRepository.findByPhone(phone);
-        if(user.isEmpty()) {
+        if (user.isEmpty()) {
             Map<String, String> errors = new HashMap<>();
             errors.put("error", "User with phone " + phone + " not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
@@ -166,9 +204,12 @@ public class UserService {
 
     public ResponseEntity<?> getUserByUsername(String username) {
         Optional<User> user = userRepository.findByUsername(username);
-        if(user.isEmpty()) {
+        if (user.isEmpty()) {
             Map<String, String> errors = new HashMap<>();
-            errors.put("error", "User with username " + username + " not found");
+            errors.put(
+                "error",
+                "User with username " + username + " not found"
+            );
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
         }
         return ResponseEntity.ok(convertToDTO(user.get()));
@@ -176,7 +217,9 @@ public class UserService {
 
     public ResponseEntity<?> changeUsername(Long id) {
         User user = userRepository.getReferenceById(id);
-        user.setUsername(generateUsername(user.getUsername()).toLowerCase(Locale.ROOT));
+        user.setUsername(
+            generateUsername(user.getUsername()).toLowerCase(Locale.ROOT)
+        );
         userRepository.save(user);
         return ResponseEntity.ok(convertToDTO(user));
     }
