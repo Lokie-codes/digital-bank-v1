@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 public class AccountController {
+
     private final AccountService accountService;
 
     public AccountController(AccountService accountService) {
@@ -31,11 +32,17 @@ public class AccountController {
 
     @GetMapping("/accounts/search")
     public ResponseEntity<?> searchAccounts(
-            @RequestParam(required = false) int accountNumber,
-            @RequestParam(required = false) Long customerId,
-            @RequestParam(required = false) String accountType,
-            @RequestParam(required = false) String currency) {
-        return accountService.searchAccounts(accountNumber, customerId, accountType, currency);
+        @RequestParam(required = false) int accountNumber,
+        @RequestParam(required = false) Long customerId,
+        @RequestParam(required = false) String accountType,
+        @RequestParam(required = false) String currency
+    ) {
+        System.out.println("Hitting Controller searchAccounts");
+        return accountService.searchAccounts(
+            accountNumber,
+            customerId,
+            accountType,
+            currency
+        );
     }
-
 }

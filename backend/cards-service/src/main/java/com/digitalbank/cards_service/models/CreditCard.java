@@ -15,8 +15,8 @@ import java.util.Date;
 public class CreditCard extends Card {
     private String cardName;
     private String cardType;
-    private Double creditLimit;
-    private Double availableLimit;
+    private BigInteger creditLimit;
+    private BigInteger availableLimit;
     private String cardClass;
     @Temporal(TemporalType.DATE)
     private Date billGenerationDate;

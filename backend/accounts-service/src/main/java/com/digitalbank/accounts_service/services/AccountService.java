@@ -1,20 +1,18 @@
 package com.digitalbank.accounts_service.services;
 
-import com.digitalbank.accounts_service.clients.UserClient;
 import com.digitalbank.accounts_service.DTO.AccountDTO;
 import com.digitalbank.accounts_service.DTO.UserDTO;
+import com.digitalbank.accounts_service.clients.UserClient;
 import com.digitalbank.accounts_service.models.Account;
 import com.digitalbank.accounts_service.repositories.AccountRepository;
-
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.WebApplicationException;
+import java.math.BigDecimal;
+import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 @Service
 public class AccountService {
@@ -22,7 +20,10 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final UserClient userClient;
 
-    public AccountService(AccountRepository accountRepository, UserClient userClient) {
+    public AccountService(
+        AccountRepository accountRepository,
+        UserClient userClient
+    ) {
         this.accountRepository = accountRepository;
         this.userClient = userClient;
     }
@@ -51,12 +52,24 @@ public class AccountService {
     private Map<String, String> validateAccount(Account account) {
         Map<String, String> errors = new HashMap<>();
 
-        if (account.getCustomerId() == null || account.getCustomerId().longValue() <= 0) {
-            errors.put("customerId", "The customer ID is mandatory and must be valid");
+        if (
+            account.getCustomerId() == null ||
+            account.getCustomerId().longValue() <= 0
+        ) {
+            errors.put(
+                "customerId",
+                "The customer ID is mandatory and must be valid"
+            );
         }
 
-        if (account.getAccountType() == null || account.getAccountType().isEmpty()) {
-            errors.put("accountType", "The account type is mandatory and must be valid");
+        if (
+            account.getAccountType() == null ||
+            account.getAccountType().isEmpty()
+        ) {
+            errors.put(
+                "accountType",
+                "The account type is mandatory and must be valid"
+            );
         }
 
         if (account.getCurrency() != null && account.getCurrency().isEmpty()) {
@@ -70,11 +83,17 @@ public class AccountService {
         try {
             return userClient.findById(customerId);
         } catch (BadRequestException e) {
-            throw new BadRequestException("Improper request. Please check the customer ID for Account service.");
+            throw new BadRequestException(
+                "Improper request. Please check the customer ID for Account service."
+            );
         } catch (NotFoundException e) {
-            throw new NotFoundException("Requested customer not found in Account service.");
+            throw new NotFoundException(
+                "Requested customer not found in Account service."
+            );
         } catch (WebApplicationException e) {
-            throw new WebApplicationException("Request failed. Please check the request for Account service.");
+            throw new WebApplicationException(
+                "Request failed. Please check the request for Account service."
+            );
         } catch (Exception e) {
             throw new RuntimeException("Something went wrong!");
         }
@@ -149,7 +168,9 @@ public class AccountService {
 
         List<AccountDTO> accountDTOs = new ArrayList<>();
         for (Account account : accounts) {
-            UserDTO accountHolder = userClient.findById(account.getCustomerId());
+            UserDTO accountHolder = userClient.findById(
+                account.getCustomerId()
+            );
             AccountDTO accountDTO = mapToAccountDTO(account, accountHolder);
             accountDTOs.add(accountDTO);
         }
@@ -160,8 +181,13 @@ public class AccountService {
     public ResponseEntity<?> getAccountById(Long id) {
         Optional<Account> account = accountRepository.findById(id);
         if (account.isPresent()) {
-            UserDTO accountHolder = userClient.findById(account.get().getCustomerId());
-            AccountDTO accountDTO = mapToAccountDTO(account.get(), accountHolder);
+            UserDTO accountHolder = userClient.findById(
+                account.get().getCustomerId()
+            );
+            AccountDTO accountDTO = mapToAccountDTO(
+                account.get(),
+                accountHolder
+            );
             return ResponseEntity.ok(accountDTO);
         } else {
             Map<String, String> error = new HashMap<>();
@@ -171,10 +197,17 @@ public class AccountService {
     }
 
     public ResponseEntity<?> getAccountByAccountNumber(int accountNumber) {
-        Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
+        Optional<Account> account = accountRepository.findByAccountNumber(
+            accountNumber
+        );
         if (account.isPresent()) {
-            UserDTO accountHolder = userClient.findById(account.get().getCustomerId());
-            AccountDTO accountDTO = mapToAccountDTO(account.get(), accountHolder);
+            UserDTO accountHolder = userClient.findById(
+                account.get().getCustomerId()
+            );
+            AccountDTO accountDTO = mapToAccountDTO(
+                account.get(),
+                accountHolder
+            );
             return ResponseEntity.ok(accountDTO);
         } else {
             Map<String, String> error = new HashMap<>();
@@ -183,7 +216,12 @@ public class AccountService {
         }
     }
 
-    public ResponseEntity<?> searchAccounts(int accountNumber, Long customerId, String accountType, String currency) {
+    public ResponseEntity<?> searchAccounts(
+        int accountNumber,
+        Long customerId,
+        String accountType,
+        String currency
+    ) {
         List<Account> accounts = accountRepository.findAll();
         if (accounts.isEmpty()) {
             Map<String, String> response = new HashMap<>();
@@ -193,20 +231,34 @@ public class AccountService {
 
         List<AccountDTO> accountDTOs = new ArrayList<>();
         for (Account account : accounts) {
-            if (accountNumber != 0 && account.getAccountNumber() != accountNumber) {
+            if (
+                accountNumber != 0 &&
+                account.getAccountNumber() != accountNumber
+            ) {
+                System.out.println(
+                    "Hitting Service Account Num. : " + accountNumber
+                );
                 continue;
             }
-            if (customerId != null && !account.getCustomerId().equals(customerId)) {
+            if (
+                customerId != null &&
+                !account.getCustomerId().equals(customerId)
+            ) {
                 continue;
             }
-            if (accountType != null && !account.getAccountType().equals(accountType)) {
+            if (
+                accountType != null &&
+                !account.getAccountType().equals(accountType)
+            ) {
                 continue;
             }
             if (currency != null && !account.getCurrency().equals(currency)) {
                 continue;
             }
 
-            UserDTO accountHolder = userClient.findById(account.getCustomerId());
+            UserDTO accountHolder = userClient.findById(
+                account.getCustomerId()
+            );
             AccountDTO accountDTO = mapToAccountDTO(account, accountHolder);
             accountDTOs.add(accountDTO);
         }

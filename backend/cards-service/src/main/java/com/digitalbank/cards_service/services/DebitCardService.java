@@ -33,7 +33,7 @@ public class DebitCardService {
             if(accountClient.findByAccountNumber(accountNumber).isEmpty()) {
                 return generateResponse(HttpStatus.NOT_FOUND,"account", "Account not found");
             }
-            account = accountClient.findByAccountNumber(accountNumber).get();
+            account = accountClient.findByAccountNumber(accountNumber).get().get(0);
         } catch (NotFoundException e) {
             return generateResponse(HttpStatus.NOT_FOUND, "account", "account with id " + accountNumber + " not found");
         } catch (WebApplicationException e) {
@@ -45,7 +45,7 @@ public class DebitCardService {
         }
         DebitCard debitCard = getDebitCard(account);
         DebitCard savedDebitCard = debitCardRepository.save(debitCard);
-        return ResponseEntity.ok(generateCardResponse(savedDebitCard));
+        return generateCardResponse(savedDebitCard);
     }
 
     private DebitCard getDebitCard(AccountResponse account) {
@@ -112,7 +112,7 @@ public class DebitCardService {
 
     public ResponseEntity<?> getDebitCard(Long cardId) {
         if(debitCardRepository.existsById(cardId)) {
-            return ResponseEntity.ok(generateCardResponse(debitCardRepository.getReferenceById(cardId)));
+            return generateCardResponse(debitCardRepository.getReferenceById(cardId));
         }
         return generateResponse(HttpStatus.BAD_REQUEST, "debitCard", "debit card does not exist");
     }

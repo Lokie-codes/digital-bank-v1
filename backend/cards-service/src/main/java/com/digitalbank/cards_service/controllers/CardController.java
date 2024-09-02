@@ -19,7 +19,7 @@ public class CardController {
     }
 
     @PostMapping("/cards/debit-card")
-    public ResponseEntity<?> createDebitCard(@RequestParam int accountNumber) {
+    public ResponseEntity<?> createDebitCard(@RequestParam Integer accountNumber) {
         return debitCardService.createDebitCard(accountNumber);
     }
 
