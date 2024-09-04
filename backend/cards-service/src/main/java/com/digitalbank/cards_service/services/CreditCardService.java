@@ -14,10 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -42,6 +39,73 @@ public class CreditCardService {
 
         }
         return generateResponse(HttpStatus.BAD_REQUEST, "catalogueId", "Card with id "+ catalogueId + " is not offered");
+    }
+
+    public ResponseEntity<?> listAllCreditCards(Long userId) {
+        if(userClient.findById(userId).isEmpty()) {
+            return generateResponse(HttpStatus.BAD_REQUEST, "userId","User does not exist");
+        }
+        Optional<List<CreditCard>> allCardsByUserId = creditCardRepository.findAllByUserId(userId);
+        if(allCardsByUserId.isEmpty()) {
+            return generateResponse(HttpStatus.NO_CONTENT, "userId", "User has no credit cards");
+        }
+        List<CreditCard> cards = allCardsByUserId.get();
+        List<CreditCardResponse> creditCardResponses = new ArrayList<>();
+        for(CreditCard card : cards) {
+            creditCardResponses.add(generateCardResponse(card));
+        }
+        return ResponseEntity.ok(creditCardResponses);
+    }
+
+    public ResponseEntity<?> getCreditCardById(Long creditCardId) {
+        if(creditCardId == null) {
+            return generateResponse(HttpStatus.BAD_REQUEST, "creditCardId", "Card id cannot be null");
+        }
+        Optional<CreditCard> creditCard = creditCardRepository.findById(creditCardId);
+        if(creditCard.isEmpty()) {
+            return generateResponse(HttpStatus.NOT_FOUND, "creditCardId", "Card does not exist");
+        }
+        return ResponseEntity.ok(generateCardResponse(creditCard.get()));
+    }
+
+    public ResponseEntity<?> getCreditCardByNumber(String cardNumber) {
+        if(cardNumber == null) {
+            return generateResponse(HttpStatus.BAD_REQUEST, "cardNumber", "Card number cannot be null");
+        }
+        Optional<CreditCard> creditCard = creditCardRepository.findByCardNumber(cardNumber);
+        if(creditCard.isEmpty()) {
+            return generateResponse(HttpStatus.NOT_FOUND, "cardNumber", "Card does not exist");
+        }
+        return ResponseEntity.ok(generateCardResponse(creditCard.get()));
+    }
+
+    public ResponseEntity<?> updateCreditCard(Long creditCardId, CreditCard creditCard) {
+        if(creditCardId == null) {
+            return generateResponse(HttpStatus.BAD_REQUEST, "creditCardId", "Card id cannot be null");
+        }
+        if(creditCard == null) {
+            return generateResponse(HttpStatus.BAD_REQUEST, "creditCard", "Card cannot be null");
+        }
+        if(creditCardRepository.existsById(creditCardId)) {
+            CreditCard oldCard = creditCardRepository.getReferenceById(creditCardId);
+            oldCard.setIsFrozenTemporarily(creditCard.getIsFrozenTemporarily());
+            oldCard.setIsCardBlocked(creditCard.getIsCardBlocked());
+            oldCard.setIsCardActive(creditCard.getIsCardActive());
+            return ResponseEntity.ok(generateCardResponse(creditCardRepository.save(oldCard)));
+        }
+        return generateResponse(HttpStatus.NOT_FOUND, "creditCardId", "Card does not exist");
+    }
+
+    public ResponseEntity<?> deleteCreditCard(Long creditCardId) {
+        if(creditCardId == null) {
+            return generateResponse(HttpStatus.BAD_REQUEST, "creditCardId", "Card id cannot be null");
+        }
+        Optional<CreditCard> creditCard = creditCardRepository.findById(creditCardId);
+        if(creditCard.isEmpty()) {
+            return generateResponse(HttpStatus.NOT_FOUND, "creditCardId", "Card does not exist");
+        }
+        creditCardRepository.deleteById(creditCardId);
+        return generateResponse(HttpStatus.OK, "creditCardId", "Card deleted successfully");
     }
 
     private CreditCard generateCreditCard(Long userId, CatalogueCreditCard catalogueCard) {
