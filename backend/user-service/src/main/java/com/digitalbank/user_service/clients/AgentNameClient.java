@@ -4,7 +4,7 @@ import com.digitalbank.user_service.models.AgentName;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
-@FeignClient(name = "AgentNameService", url = "http://localhost:8000")
+@FeignClient(name = "agent-name-generator")
 public interface AgentNameClient {
     @GetMapping("/generate")
     AgentName generateAgentName();
