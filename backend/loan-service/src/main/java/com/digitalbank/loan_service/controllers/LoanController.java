@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 public class LoanController {
+
     private final LoanService loanService;
+
     public LoanController(LoanService loanService) {
         this.loanService = loanService;
     }
@@ -29,7 +31,10 @@ public class LoanController {
     }
 
     @PutMapping("/loans/{id}")
-    public ResponseEntity<?> updateLoan(@PathVariable Long id, @RequestBody Loan loan) {
+    public ResponseEntity<?> updateLoan(
+        @PathVariable Long id,
+        @RequestBody Loan loan
+    ) {
         return loanService.updateLoan(id, loan);
     }
 
@@ -38,17 +43,17 @@ public class LoanController {
         return loanService.deleteLoan(id);
     }
 
-    @PostMapping("/users/{userId}")
+    @PostMapping("/loans/users/{userId}")
     public ResponseEntity<?> applyForLoan(
-            @PathVariable Long userId,
-            @RequestParam(required = true) Long loanId,
-            @RequestParam(required = true) int tenureMonths) {
+        @PathVariable Long userId,
+        @RequestParam(required = true) Long loanId,
+        @RequestParam(required = true) int tenureMonths
+    ) {
         return loanService.applyForLoan(userId, loanId, tenureMonths);
     }
 
-    @GetMapping("/users/{userId}/loans")
+    @GetMapping("/loans/users/{userId}")
     public ResponseEntity<?> getUserLoans(@PathVariable Long userId) {
         return loanService.fetchUserLoans(userId);
     }
-
 }
