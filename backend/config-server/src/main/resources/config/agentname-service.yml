@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: agentname-service
+    name: agent-name-generator
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:testdb

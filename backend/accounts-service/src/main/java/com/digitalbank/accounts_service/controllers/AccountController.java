@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/accounts")
 public class AccountController {
 
     private final AccountService accountService;
@@ -15,22 +15,22 @@ public class AccountController {
         this.accountService = accountService;
     }
 
-    @PostMapping("/accounts")
+    @PostMapping
     public ResponseEntity<?> createAccount(@RequestBody Account account) {
         return accountService.createAccount(account);
     }
 
-    @GetMapping("/accounts")
+    @GetMapping
     public ResponseEntity<?> listAccounts() {
         return accountService.getAllAccounts();
     }
 
-    @GetMapping("/accounts/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getAccountById(@PathVariable Long id) {
         return accountService.getAccountById(id);
     }
 
-    @GetMapping("/accounts/search")
+    @GetMapping("/search")
     public ResponseEntity<?> searchAccounts(
         @RequestParam(required = false) int accountNumber,
         @RequestParam(required = false) Long customerId,

@@ -8,58 +8,73 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/cards")
 public class CardController {
+
     private final DebitCardService debitCardService;
     private final CreditCardService creditCardService;
-    public CardController(DebitCardService debitCardService, CreditCardService creditCardService) {
+
+    public CardController(
+        DebitCardService debitCardService,
+        CreditCardService creditCardService
+    ) {
         this.debitCardService = debitCardService;
         this.creditCardService = creditCardService;
     }
 
-    @GetMapping("/cards/debit-card/{id}")
+    @GetMapping("/debit-card/{id}")
     public ResponseEntity<?> getDebitCard(@PathVariable Long id) {
         return debitCardService.getDebitCard(id);
     }
 
-    @PostMapping("/cards/debit-card")
-    public ResponseEntity<?> createDebitCard(@RequestParam Integer accountNumber) {
+    @PostMapping("/debit-card")
+    public ResponseEntity<?> createDebitCard(
+        @RequestParam Integer accountNumber
+    ) {
         return debitCardService.createDebitCard(accountNumber);
     }
 
-    @PutMapping("/cards/debit-card/{id}")
-    public ResponseEntity<?> updateDebitCard(@PathVariable Long id, @RequestBody DebitCard card) {
+    @PutMapping("/debit-card/{id}")
+    public ResponseEntity<?> updateDebitCard(
+        @PathVariable Long id,
+        @RequestBody DebitCard card
+    ) {
         return debitCardService.updateDebitCardDetails(id, card);
     }
 
-    @DeleteMapping("/cards/debit-card/{id}")
+    @DeleteMapping("/debit-card/{id}")
     public ResponseEntity<?> deleteDebitCard(@PathVariable Long id) {
         return debitCardService.deleteDebitCard(id);
     }
 
-    @GetMapping("/cards/credit-card/{cardId}")
+    @GetMapping("/credit-card/{cardId}")
     public ResponseEntity<?> getCreditCard(@PathVariable Long cardId) {
         return creditCardService.getCreditCardById(cardId);
     }
 
-    @PostMapping("/cards/credit-card")
-    public ResponseEntity<?> createCreditCard(@RequestParam Long catalogueId, @RequestParam Long userId) {
+    @PostMapping("/credit-card")
+    public ResponseEntity<?> createCreditCard(
+        @RequestParam Long catalogueId,
+        @RequestParam Long userId
+    ) {
         return creditCardService.createCreditCard(catalogueId, userId);
     }
 
-    @GetMapping("/cards/credit-card/users/{userId}")
+    @GetMapping("/credit-card/users/{userId}")
     public ResponseEntity<?> getALlCreditCards(@PathVariable Long userId) {
         return creditCardService.listAllCreditCards(userId);
     }
 
-    @PutMapping("/cards/credit-card/{cardId}")
-    public ResponseEntity<?> updateCreditCard(@PathVariable Long cardId, @RequestBody CreditCard card) {
+    @PutMapping("/credit-card/{cardId}")
+    public ResponseEntity<?> updateCreditCard(
+        @PathVariable Long cardId,
+        @RequestBody CreditCard card
+    ) {
         return creditCardService.updateCreditCard(cardId, card);
     }
 
-    @DeleteMapping("/cards/credit-card/{cardId}")
+    @DeleteMapping("/credit-card/{cardId}")
     public ResponseEntity<?> deleteCreditCard(@PathVariable Long cardId) {
         return creditCardService.deleteCreditCard(cardId);
     }
-
 }

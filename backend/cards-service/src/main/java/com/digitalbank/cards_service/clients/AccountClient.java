@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "accounts-service")
 public interface AccountClient {
-    @GetMapping("/api/accounts/{id}")
+    @GetMapping("/accounts/{id}")
     Optional<AccountResponse> findById(@PathVariable("id") Long id);
 
-    @GetMapping("/api/accounts/search")
+    @GetMapping("/accounts/search")
     Optional<List<AccountResponse>> findByAccountNumber(
         @RequestParam("accountNumber") Integer accountNumber
     );

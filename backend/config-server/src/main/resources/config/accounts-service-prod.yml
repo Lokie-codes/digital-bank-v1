@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://db-user-service:5432/accounts
+    username: $(POSTGRES_USER)
+    password: $(POSTGRES_PASSWORD)
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false

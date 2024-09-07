@@ -1,0 +1,17 @@
+services:
+  agent-name-generator:
+    build: .
+    ports:
+      - "${AGENT_NAME_GENERATOR_PORT}:${AGENT_NAME_GENERATOR_PORT}"
+    profiles:
+      - agent-name-generator
+      - default
+    environment:
+      AGENT_NAME_PORT: ${AGENT_NAME_GENERATOR_PORT}
+    networks:
+      - microservices
+
+networks:
+  microservices:
+    name: microservices
+    driver: bridge

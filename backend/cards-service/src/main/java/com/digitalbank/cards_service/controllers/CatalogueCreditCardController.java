@@ -6,36 +6,44 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/credit-cards")
 public class CatalogueCreditCardController {
+
     private final CatalogueCreditCardService catalogueCreditCardService;
-    public CatalogueCreditCardController(CatalogueCreditCardService catalogueCreditCardService) {
+
+    public CatalogueCreditCardController(
+        CatalogueCreditCardService catalogueCreditCardService
+    ) {
         this.catalogueCreditCardService = catalogueCreditCardService;
     }
 
-    @GetMapping("/credit-cards")
+    @GetMapping
     public ResponseEntity<?> getAllCreditCards() {
         return catalogueCreditCardService.listAllCreditCards();
     }
 
-    @PostMapping("/credit-cards")
-    public ResponseEntity<?> createCreditCard(@RequestBody CatalogueCreditCard creditCard) {
+    @PostMapping
+    public ResponseEntity<?> createCreditCard(
+        @RequestBody CatalogueCreditCard creditCard
+    ) {
         return catalogueCreditCardService.addCreditCard(creditCard);
     }
 
-    @GetMapping("/credit-cards/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getCreditCardById(@PathVariable Long id) {
         return catalogueCreditCardService.fetchCreditCardById(id);
     }
 
-    @PutMapping("/credit-cards/{id}")
-    public ResponseEntity<?> updateCreditCard(@PathVariable Long id, @RequestBody CatalogueCreditCard creditCard) {
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateCreditCard(
+        @PathVariable Long id,
+        @RequestBody CatalogueCreditCard creditCard
+    ) {
         return catalogueCreditCardService.updateCreditCard(id, creditCard);
     }
 
-    @DeleteMapping("/credit-cards/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCreditCard(@PathVariable Long id) {
         return catalogueCreditCardService.deleteCreditCard(id);
     }
-
 }

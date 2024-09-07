@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/loans")
 public class LoanController {
 
     private final LoanService loanService;
@@ -15,22 +15,22 @@ public class LoanController {
         this.loanService = loanService;
     }
 
-    @GetMapping("/loans")
+    @GetMapping
     public ResponseEntity<?> getAllLoans() {
         return loanService.getAllLoans();
     }
 
-    @PostMapping("/loans")
+    @PostMapping
     public ResponseEntity<?> createLoan(@RequestBody Loan loan) {
         return loanService.createLoan(loan);
     }
 
-    @GetMapping("/loans/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getLoanById(@PathVariable Long id) {
         return loanService.getLoan(id);
     }
 
-    @PutMapping("/loans/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<?> updateLoan(
         @PathVariable Long id,
         @RequestBody Loan loan
@@ -38,12 +38,12 @@ public class LoanController {
         return loanService.updateLoan(id, loan);
     }
 
-    @DeleteMapping("/loans/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteLoan(@PathVariable Long id) {
         return loanService.deleteLoan(id);
     }
 
-    @PostMapping("/loans/users/{userId}")
+    @PostMapping("/users/{userId}")
     public ResponseEntity<?> applyForLoan(
         @PathVariable Long userId,
         @RequestParam(required = true) Long loanId,
@@ -52,7 +52,7 @@ public class LoanController {
         return loanService.applyForLoan(userId, loanId, tenureMonths);
     }
 
-    @GetMapping("/loans/users/{userId}")
+    @GetMapping("/users/{userId}")
     public ResponseEntity<?> getUserLoans(@PathVariable Long userId) {
         return loanService.fetchUserLoans(userId);
     }

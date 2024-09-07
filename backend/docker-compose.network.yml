@@ -1,0 +1,30 @@
+# networks:
+#   microservices:
+#     name: microservices
+#     driver: bridge
+# services:
+# accounts-service:
+#   build: ./accounts-service
+#   ports:
+#     - "${ACCOUNTS_SERVICE_PORT}:8080"
+#   depends_on:
+#     - db-accounts-service
+#     - user-service
+#     - config-server
+#   profiles:
+#     - accounts-service
+#     - default
+
+# db-accounts-service:
+#   image: postgres
+#   volumes:
+#     - ./accounts-service/data/db:/var/lib/postgresql/data
+#   environment:
+#     POSTGRES_DB: ${POSTGRES_DB}
+#     POSTGRES_USER: ${POSTGRES_USER}
+#     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#   expose:
+#     - "${DB_PORT}"
+#   profiles:
+#     - accounts-service
+#     - default
