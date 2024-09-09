@@ -66,6 +66,7 @@ Welcome to the Digital Bank microservices project! This project is designed to c
    docker-compose up --build
    ```
 
+(Updation of ports)
 3. **Access Services**
     - **API Gateway:** `http://localhost:8080`
    - **User Service:** `http://localhost:8081`
@@ -83,7 +84,7 @@ Welcome to the Digital Bank microservices project! This project is designed to c
 ### API Documentation
 
 - Each microservice provides its own API documentation. You can access Swagger UI for each service at:
-
+(Need to add swagger dependencies)
   - **User Service:** `http://localhost:8081/swagger-ui.html`
   - **Accounts Service:** `http://localhost:8082/swagger-ui.html`
   - **Loan Service:** `http://localhost:8083/swagger-ui.html`
