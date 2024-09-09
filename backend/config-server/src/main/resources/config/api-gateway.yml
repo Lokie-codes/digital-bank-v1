@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${API_GATEWAY_PORT}
 
 spring:
   application:
@@ -37,9 +37,3 @@ spring:
           predicates:
             - Path=/transactions/**
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    preferIpAddress: true

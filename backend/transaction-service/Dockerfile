@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar /app/application.jar
 
 # Expose the application port
-EXPOSE ${ACCOUNTS_SERVICE_PORT}
+EXPOSE ${CONFIG_SERVER_PORT}
 
 # Run the application using the app name
 ENTRYPOINT ["java", "-jar", "/app/application.jar"]

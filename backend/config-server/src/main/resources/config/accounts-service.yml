@@ -1,13 +1,7 @@
 server:
-  port: ${PORT:8081} # Make port configurable via environment variable, default to 8081
+  port: ${ACCOUNTS_SERVICE_PORT:8081} # Make port configurable via environment variable, default to 8081
 
 spring:
   application:
     name: accounts-service
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://${EUREKA_HOST:service-registry}:${EUREKA_PORT:8761}/eureka/ # Use Eureka service name and port, configurable via env variables
-  instance:
-    preferIpAddress: true

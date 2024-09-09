@@ -12,5 +12,4 @@ services:
 
 networks:
   microservices:
-    name: microservices
-    driver: bridge
+    external: true
