@@ -1,48 +1,147 @@
 package com.digitalbank.user_service.services;
 
-import com.digitalbank.user_service.DTO.UserDTO;
+import com.digitalbank.user_service.responses.UserResponse;
 import com.digitalbank.user_service.clients.AgentNameClient;
+import com.digitalbank.user_service.exceptions.ResourceNotFoundException;
+import com.digitalbank.user_service.exceptions.UserAlreadyExistsException;
 import com.digitalbank.user_service.models.AgentName;
+import com.digitalbank.user_service.models.AuthenticationRequest;
 import com.digitalbank.user_service.models.User;
 import com.digitalbank.user_service.repositories.UserRepository;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.WebApplicationException;
+import com.digitalbank.user_service.security.CustomAuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import java.util.*;
 import java.util.regex.Pattern;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-    private final Pattern emailPattern = Pattern.compile(
-        "^[A-Za-z0-9+_.-]+@(.+)$"
-    );
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final CustomAuthenticationProvider authenticationProvider;
     private final AgentNameClient agentNameClient;
 
-    public UserService(
-        UserRepository userRepository,
-        AgentNameClient agentNameClient
-    ) {
+    // Regex pattern for validating email addresses
+    private final Pattern emailPattern = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+
+    public UserService(UserRepository userRepository,
+                       AgentNameClient agentNameClient,
+                       PasswordEncoder passwordEncoder,
+                       CustomAuthenticationProvider authenticationProvider,
+                       AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.agentNameClient = agentNameClient;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationProvider = authenticationProvider;
+        this.authenticationManager = authenticationManager;
     }
 
-    public ResponseEntity<?> createUser(User user) {
+    /**
+     * Creates a new user in the system.
+     * @param user The user to be created.
+     * @return The created user as a UserDTO.
+     * @throws UserAlreadyExistsException if the user already exists.
+     */
+    public UserResponse createUser(User user) {
         Map<String, String> errors = validateUser(user);
         if (!errors.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+            throw new UserAlreadyExistsException("User already exists with provided details", errors);
         }
 
         sanitizeUser(user);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
-        UserDTO userDTO = convertToDTO(savedUser);
-        return ResponseEntity.ok(userDTO);
+        return convertToDTO(savedUser);
     }
+
+    /**
+     * Authenticates a user with the provided authentication request.
+     * @param authenticationRequest The authentication request containing username and password.
+     * @return The authenticated user.
+     * @throws UsernameNotFoundException if the user is not found.
+     */
+    public User authenticate(AuthenticationRequest authenticationRequest) {
+        String username = authenticationRequest.getUsername();
+//        authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(username, authenticationRequest.getPassword()));
+        authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(username, authenticationRequest.getPassword()));
+
+        return userRepository.findByUsername(username)
+                .or(() -> userRepository.findByEmail(username))
+                .or(() -> userRepository.findByPhone(username))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+    }
+
+    /**
+     * Retrieves a user by their ID.
+     * @param id The ID of the user.
+     * @return The user as a UserDTO.
+     * @throws ResourceNotFoundException if the user with the specified ID is not found.
+     */
+    public UserResponse getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User with ID " + id + " not found"));
+        return convertToDTO(user);
+    }
+
+    /**
+     * Retrieves all users in the system.
+     * @return A list of all users as UserDTOs.
+     */
+    public List<UserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        List<UserResponse> userResponses = new ArrayList<>();
+        users.forEach(user -> userResponses.add(convertToDTO(user)));
+        return userResponses;
+    }
+
+    /**
+     * Retrieves a user by their email.
+     * @param email The email of the user.
+     * @return The user as a UserDTO.
+     * @throws ResourceNotFoundException if the user with the specified email is not found.
+     */
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
+        return convertToDTO(user);
+    }
+
+    public UserResponse getUserByPhone(String phoneNumber) {
+        User user = userRepository.findByPhone(phoneNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("User with phone " + phoneNumber + " not found"));
+        return convertToDTO(user);
+    }
+
+    public UserResponse getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User with username " + username + " not found"));
+        return convertToDTO(user);
+    }
+
+    // Additional methods for retrieving users by username, phone, etc. can follow a similar pattern
+
+    /**
+     * Changes the username of the user with the specified ID.
+     * @param id The ID of the user whose username is to be changed.
+     * @return The updated user as a UserDTO.
+     */
+    public UserResponse changeUsername(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User with ID " + id + " not found"));
+        user.setUsername(generateUsername(user.getUsername()).toLowerCase(Locale.ROOT));
+        userRepository.save(user);
+        return convertToDTO(user);
+    }
+
+    // Username generation, validation, and other helper methods...
 
     private void sanitizeUser(User user) {
         user.setEmail(user.getEmail().toLowerCase(Locale.ROOT));
@@ -52,13 +151,6 @@ public class UserService {
     }
 
     private String generateUsername(String fallbackUsername) {
-        if (agentNameClient == null) {
-            System.out.println(
-                "Agent name generating service not found. Setting username to email."
-            );
-            return fallbackUsername.toLowerCase(Locale.ROOT);
-        }
-
         try {
             String username;
             do {
@@ -66,25 +158,8 @@ public class UserService {
                 username = agentName.getName().toLowerCase(Locale.ROOT);
             } while (userRepository.findByUsername(username).isPresent());
             return username;
-        } catch (BadRequestException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Improper request. Please check the request for Agent name generating service."
-            );
-        } catch (NotFoundException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Requested resource not found for Agent name generating service."
-            );
-        } catch (WebApplicationException e) {
-            System.out.println(
-                "Agent name generating service is down. Setting username to email."
-            );
-            return fallbackUsername.toLowerCase(Locale.ROOT);
         } catch (Exception e) {
-            System.out.println(
-                "An error occurred while generating username. Setting username to email."
-            );
+            // Log error and fallback to using email as username
             return fallbackUsername.toLowerCase(Locale.ROOT);
         }
     }
@@ -105,18 +180,11 @@ public class UserService {
         } else if (!isEmailValid(email)) {
             errors.put("email", "Invalid email format");
         } else if (userRepository.findByEmail(email).isPresent()) {
-            errors.put(
-                "email",
-                "Email is already in use. Please try a different email"
-            );
+            errors.put("email", "Email is already in use. Please try a different email");
         }
     }
 
-    private void validateField(
-        String fieldName,
-        String value,
-        Map<String, String> errors
-    ) {
+    private void validateField(String fieldName, String value, Map<String, String> errors) {
         if (value == null || value.isEmpty()) {
             errors.put(fieldName, fieldName + " is required");
         }
@@ -124,12 +192,11 @@ public class UserService {
 
     private void validatePhone(String phone, Map<String, String> errors) {
         if (phone == null || phone.isEmpty()) {
-            errors.put("phone", "Phone is required");
+            errors.put("phone", "Phone number is required");
         } else if (!phone.matches("^[+][0-9]{10,13}$")) {
-            errors.put(
-                "phone",
-                "Enter a valid phone number with country code (e.g., +919876543210)"
-            );
+            errors.put("phone", "Enter a valid phone number with country code (e.g., +919876543210)");
+        } else if (userRepository.findByPhone(phone).isPresent()) {
+            errors.put("phone", "Phone number is already registered. Please try a different phone number");
         }
     }
 
@@ -137,10 +204,7 @@ public class UserService {
         if (password == null || password.isEmpty()) {
             errors.put("password", "Password is required");
         } else if (!isPasswordValid(password)) {
-            errors.put(
-                "password",
-                "Password must be 8-16 characters long, contain at least one digit, one uppercase letter, and one special character"
-            );
+            errors.put("password", "Password must be 8-16 characters long, contain at least one digit, one uppercase letter, and one special character");
         }
     }
 
@@ -150,88 +214,19 @@ public class UserService {
 
     private boolean isPasswordValid(String password) {
         return (
-            password.length() >= 8 &&
-            password.length() <= 16 &&
-            password.matches(".*\\d.*") &&
-            password.matches(".*[A-Z].*") &&
-            password.matches(".*[._!@#$%^&*()?,].*")
+                password.length() >= 8 &&
+                        password.length() <= 16 &&
+                        password.matches(".*\\d.*") && // At least one digit
+                        password.matches(".*[A-Z].*") && // At least one uppercase letter
+                        password.matches(".*[._!@#$%^&*()?,].*") // At least one special character
         );
     }
 
-    public ResponseEntity<?> getUserById(Long id) {
-        if (!userRepository.existsById(id)) {
-            Map<String, String> errors = new HashMap<>();
-            errors.put("error", "User with id " + id + " not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
-        }
-        return ResponseEntity.ok(
-            convertToDTO(userRepository.getReferenceById(id))
-        );
+
+    private UserResponse convertToDTO(User user) {
+        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(),
+                user.getFirstName(), user.getLastName());
     }
 
-    public ResponseEntity<?> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        if (users.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
-                Map.of("error", "No users found")
-            );
-        }
 
-        List<UserDTO> userDTOs = new ArrayList<>();
-        users.forEach(user -> userDTOs.add(convertToDTO(user)));
-        return ResponseEntity.ok(userDTOs);
-    }
-
-    public ResponseEntity<?> getUserByEmail(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            Map<String, String> errors = new HashMap<>();
-            errors.put("error", "User with email " + email + " not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
-        }
-        return ResponseEntity.ok(convertToDTO(user.get()));
-    }
-
-    public ResponseEntity<?> getUserByPhone(String phone) {
-        Optional<User> user = userRepository.findByPhone(phone);
-        if (user.isEmpty()) {
-            Map<String, String> errors = new HashMap<>();
-            errors.put("error", "User with phone " + phone + " not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
-        }
-        return ResponseEntity.ok(convertToDTO(user.get()));
-    }
-
-    public ResponseEntity<?> getUserByUsername(String username) {
-        Optional<User> user = userRepository.findByUsername(username);
-        if (user.isEmpty()) {
-            Map<String, String> errors = new HashMap<>();
-            errors.put(
-                "error",
-                "User with username " + username + " not found"
-            );
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
-        }
-        return ResponseEntity.ok(convertToDTO(user.get()));
-    }
-
-    public ResponseEntity<?> changeUsername(Long id) {
-        User user = userRepository.getReferenceById(id);
-        user.setUsername(
-            generateUsername(user.getUsername()).toLowerCase(Locale.ROOT)
-        );
-        userRepository.save(user);
-        return ResponseEntity.ok(convertToDTO(user));
-    }
-
-    private UserDTO convertToDTO(User user) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setUsername(user.getUsername());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setPhone(user.getPhone());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setLastName(user.getLastName());
-        return userDTO;
-    }
 }

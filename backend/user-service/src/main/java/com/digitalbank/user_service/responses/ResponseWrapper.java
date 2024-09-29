@@ -1,4 +1,4 @@
-package com.digitalbank.user_service.DTO;
+package com.digitalbank.user_service.responses;
 
 public class ResponseWrapper<T> {
     private T data;
