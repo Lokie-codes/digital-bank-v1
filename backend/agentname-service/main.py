@@ -34,4 +34,4 @@ async def generate_name():
 
     first_name = random.choice(adjectives).lower().capitalize()
     last_name = random.choice(nouns).lower().capitalize()
-    return {"name": f"{first_name} {last_name}"}
+    return {"name": f"{first_name}-{last_name}"}

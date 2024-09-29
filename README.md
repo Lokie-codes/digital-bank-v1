@@ -4,6 +4,8 @@
 Welcome to the Digital Bank microservices project! This project is designed to create a scalable digital banking application using a microservices architecture. It consists of various services, including user management, accounts, loans, cards, transactions, and an agent name generator.
 
 ## Project Structure
+<!-- Image of overall backend design -->
+![Digital Bank Microservices](images/backend-overview.jpg)
 
 ### Services
 
@@ -59,14 +61,43 @@ Welcome to the Digital Bank microservices project! This project is designed to c
 
 2. **Build and Start Services**
 
-   Use Docker Compose to build and start all services.
+   Use Docker Compose to build and start the services.
 
    ```bash
-   docker-compose up --build
+   docker-compose up --build <service-name>/docker-compose.yml
    ```
 
-(Updation of ports)
-3. **Access Services**
+3. **Addition of .env**
+   
+      Create a `.env` file in all the services and add the following environment variables:
+   
+      ```bash
+      # .env file
+      # Database credentials
+      POSTGRES_DB=postgres
+      POSTGRES_USER=postgres
+      POSTGRES_PASSWORD=postgres
+
+      # Ports
+      SERVICE_REGISTRY_PORT=8761
+      CONFIG_SERVER_PORT=8088
+      ACCOUNTS_SERVICE_PORT=8082
+      Loan_SERVICE_PORT=8083
+      CARDS_SERVICE_PORT=8084
+      TRANSACTIONS_SERVICE_PORT=8085
+      USER_SERVICE_PORT=8081
+      AGENT_NAME_GENERATOR_PORT=8086
+      DB_PORT=5432
+      PROFILE=prod
+
+      JWT_SECRET_KEY=your-string-jwt-secret-key-here
+      # Spring boot
+      SPRING_PROFILES_ACTIVE: prod
+      ```
+
+
+4. **Access Services**
+   Access the ports of the services using the following URLs:
     - **API Gateway:** `http://localhost:8080`
    - **User Service:** `http://localhost:8081`
    - **Accounts Service:** `http://localhost:8082`
@@ -80,16 +111,6 @@ Welcome to the Digital Bank microservices project! This project is designed to c
 - Configuration files are stored in the Config Server.
 - Modify the configurations as needed in the `config` directory.
 
-### API Documentation
-
-- Each microservice provides its own API documentation. You can access Swagger UI for each service at:
-(Need to add swagger dependencies)
-  - **User Service:** `http://localhost:8081/swagger-ui.html`
-  - **Accounts Service:** `http://localhost:8082/swagger-ui.html`
-  - **Loan Service:** `http://localhost:8083/swagger-ui.html`
-  - **Cards Service:** `http://localhost:8084/swagger-ui.html`
-  - **Transactions Service:** `http://localhost:8085/swagger-ui.html`
-  - **Agent Name Generator:** `http://localhost:8086/docs`
 
 ## Contributing
 

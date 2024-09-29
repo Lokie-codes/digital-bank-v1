@@ -13,3 +13,10 @@ eureka:
 
 server:
   port: ${CONFIG_PORT:8088}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+
