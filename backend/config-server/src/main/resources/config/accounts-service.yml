@@ -4,4 +4,13 @@ server:
 spring:
   application:
     name: accounts-service
-
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: card_service_group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      missing-topics-fatal: false

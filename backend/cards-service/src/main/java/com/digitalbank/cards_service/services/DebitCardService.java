@@ -11,6 +11,7 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,6 +28,7 @@ public class DebitCardService {
         this.accountClient = accountClient;
     }
 
+    @KafkaListener(topics = "account_created", groupId = "card_service_group")
     public ResponseEntity<?> createDebitCard(int accountNumber) {
         AccountResponse account;
         try {

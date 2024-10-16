@@ -224,8 +224,13 @@ public class UserService {
 
 
     private UserResponse convertToDTO(User user) {
-        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(),
-                user.getFirstName(), user.getLastName());
+        return new UserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getPhone(),
+                user.getUsername());
     }
 
 

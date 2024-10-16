@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,13 +25,19 @@ public class AccountService {
     private final UserClient userClient;
     private final CardsClient cardsClient;
 
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    private static final String TOPIC = "account_created";
+
     public AccountService(
             AccountRepository accountRepository,
             UserClient userClient,
-            CardsClient cardsClient) {
+            CardsClient cardsClient,
+            KafkaTemplate<String,Object> kafkaTemplate) {
         this.accountRepository = accountRepository;
         this.userClient = userClient;
         this.cardsClient = cardsClient;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     public ResponseEntity<?> createAccount(Account account) {
@@ -52,7 +59,7 @@ public class AccountService {
         AccountDTO accountDTO = mapToAccountDTO(registeredAccount, userDTO);
         // initiate trigger to create a debit card in cards-service
         try {
-            cardsClient.createDebitCard(accountDTO.getAccountNumber());
+            kafkaTemplate.send(TOPIC, "AccountCreated", accountDTO.getAccountNumber());
         } catch (Exception e) {
             System.out.println("Could not create Debit Card. " + e);
         }
@@ -212,6 +219,7 @@ public class AccountService {
     }
 
     public ResponseEntity<?> searchAccounts(
+            String token,
             int accountNumber,
             Long customerId,
             String accountType,
