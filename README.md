@@ -5,7 +5,7 @@ Welcome to the Digital Bank microservices project! This project is designed to c
 
 ## Project Structure
 <!-- Image of overall backend design -->
-![Digital Bank Microservices](images/digital-bank-backend-architecture.jpg)
+<!-- ![Digital Bank Microservices](images/digital-bank-backend-architecture.jpg) -->
 
 ### Services
 
