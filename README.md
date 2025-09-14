@@ -1,7 +1,7 @@
 
 # Digital Bank
 
-![Digital bank logo](images\Digital-Bank-logo.png)
+![Digital bank logo](images/Digital-Bank-logo.png)
 
 Welcome to the Digital Bank project! This application is designed to provide a scalable digital banking platform with core features such as user management, accounts, loans, cards, transactions, and an agent name generator.
 
