@@ -83,6 +83,13 @@ services:
       - service-registry
       - config-server
 
+  frontend:
+    extends:
+      file: ../frontend/docker-compose.yml
+      service: frontend
+    depends_on:
+      - api-gateway
+
 networks:
   microservices:
     external: true

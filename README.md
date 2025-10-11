@@ -7,6 +7,10 @@ Welcome to the Digital Bank project! This application is designed to provide a s
 
 ## Project Structure
 
+The project consists of:
+- **Backend**: Microservices-based architecture using Spring Boot
+- **Frontend**: Modern React application with Tailwind CSS
+
 <!-- Image of overall backend design -->
 
 <!-- ![Digital Bank](images/digital-bank-backend-architecture.jpg) -->
@@ -43,12 +47,23 @@ Welcome to the Digital Bank project! This application is designed to provide a s
    * A FastAPI-based feature to generate unique user names.
    * Combines adjectives and nouns from a JSON file.
 
+7. **Frontend**
+
+   * Modern React-based web application
+   * User authentication and registration
+   * Account management interface
+   * Loan application and tracking
+   * Transaction history and creation
+   * Responsive design with Tailwind CSS
+
 ## Getting Started
 
 ### Prerequisites
 
 * Docker
 * Docker Compose
+* Node.js 18+ (for local development)
+* npm or yarn (for local development)
 
 ### Setup
 
@@ -61,15 +76,16 @@ Welcome to the Digital Bank project! This application is designed to provide a s
 
 2. **Build and Start the Application**
 
-   Use Docker Compose to build and run the application.
+   Use Docker Compose to build and run the entire application (backend + frontend).
 
    ```bash
+   cd backend
    docker-compose up --build
    ```
 
 3. **Environment Variables**
 
-   Create a `.env` file and include the following variables:
+   Create a `.env` file in the backend directory and include the following variables:
 
    ```bash
    # .env file
@@ -83,13 +99,56 @@ Welcome to the Digital Bank project! This application is designed to provide a s
 
    JWT_SECRET_KEY=your-string-jwt-secret-key-here
    SPRING_PROFILES_ACTIVE=prod
+   
+   # Frontend
+   FRONTEND_PORT=3000
+   API_BASE_URL=http://localhost:8080
    ```
 
 4. **Access the Application**
 
-   Access the main application via:
+   Access the application via:
 
-   * **Main App URL:** `http://localhost:8080`
+   * **Frontend:** `http://localhost:3000`
+   * **Backend API Gateway:** `http://localhost:8080`
+
+### Local Development (Frontend Only)
+
+To run the frontend in development mode:
+
+1. **Navigate to the frontend directory**
+
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Create environment file**
+
+   Copy `.env.example` to `.env` and configure the API URL:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Start the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+   The frontend will be available at `http://localhost:5173`
+
+5. **Build for production**
+
+   ```bash
+   npm run build
+   ```
 
 ### Configuration
 
