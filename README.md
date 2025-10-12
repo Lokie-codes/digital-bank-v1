@@ -5,6 +5,17 @@
 
 Welcome to the Digital Bank project! This application is designed to provide a scalable digital banking platform with core features such as user management, accounts, loans, cards, transactions, and an agent name generator.
 
+## 📸 Application Screenshots
+
+### Home Page
+![Home Page](screenshots/01-home-page.png)
+
+### Login Page
+![Login Page](screenshots/02-login-page.png)
+
+### Register Page
+![Register Page](screenshots/03-register-page.png)
+
 ## Project Structure
 
 The project consists of:
@@ -80,65 +91,74 @@ The project consists of:
      - Dark-themed components with shadows
      - Accessible color contrasts
 
-## Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
+Get started with Digital Bank in minutes!
 
-* Docker
-* Docker Compose
-* Node.js 18+ (for local development)
-* npm or yarn (for local development)
+**👉 New users**: See our [Quick Start Guide](QUICKSTART.md) for the fastest way to get running!
 
-### Setup
+### Option 1: Using Make (Easiest)
 
-1. **Clone the Repository**
+If you have `make` installed:
 
-   ```bash
-   git clone https://github.com/your-repository/digital-bank.git
-   cd digital-bank
-   ```
+```bash
+# Clone and setup
+git clone https://github.com/Lokie-codes/digital-bank-v1.git
+cd digital-bank-v1
 
-2. **Build and Start the Application**
+# One-command setup
+make setup
 
-   Use Docker Compose to build and run the entire application (backend + frontend).
+# Start services
+make start
+```
 
-   ```bash
-   cd backend
-   docker-compose up --build
-   ```
+See all available commands with `make help`
 
-3. **Environment Variables**
+### Option 2: Automated Setup Script
 
-   Create a `.env` file in the backend directory and include the following variables:
+```bash
+# Clone the repository
+git clone https://github.com/Lokie-codes/digital-bank-v1.git
+cd digital-bank-v1
 
-   ```bash
-   # .env file
-   POSTGRES_DB=postgres
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=postgres
+# Run the setup script
+chmod +x setup.sh
+./setup.sh
 
-   SERVICE_PORT=8080
-   DB_PORT=5432
-   PROFILE=prod
+# Start the backend
+cd backend
+docker-compose up --build
 
-   JWT_SECRET_KEY=your-string-jwt-secret-key-here
-   SPRING_PROFILES_ACTIVE=prod
-   
-   # Frontend
-   FRONTEND_PORT=3000
-   API_BASE_URL=http://localhost:8080
-   ```
+# In a new terminal, start the frontend
+cd frontend
+npm install
+npm run dev
+```
 
-4. **Access the Application**
+Visit **http://localhost:5173** to see the application!
 
-   Access the application via:
+### Option 3: Manual Setup
 
-   * **Frontend:** `http://localhost:3000`
-   * **Backend API Gateway:** `http://localhost:8080`
+See the detailed [SETUP.md](SETUP.md) guide for manual installation and configuration.
+
+## 📋 Prerequisites
+
+* Docker (version 20.10+)
+* Docker Compose (version 2.0+)
+* Node.js 18+ (for frontend development)
+* npm or yarn
+
+## 🌐 Accessing the Application
+
+* **Frontend (Development):** http://localhost:5173
+* **Frontend (Production):** http://localhost:3000
+* **Backend API Gateway:** http://localhost:8080
+* **Service Registry (Eureka):** http://localhost:8761
 
 ### Local Development (Frontend Only)
 
-To run the frontend in development mode:
+To run the frontend in development mode with hot-reload:
 
 1. **Navigate to the frontend directory**
 
@@ -160,19 +180,61 @@ To run the frontend in development mode:
    cp .env.example .env
    ```
 
+   The `.env` file should contain:
+   ```
+   VITE_API_BASE_URL=http://localhost:8080
+   ```
+
 4. **Start the development server**
 
    ```bash
    npm run dev
    ```
 
-   The frontend will be available at `http://localhost:5173`
+   The frontend will be available at `http://localhost:5173` with hot-reload enabled.
 
 5. **Build for production**
 
    ```bash
    npm run build
    ```
+
+   The optimized production files will be in the `dist/` directory.
+
+## 🔧 Troubleshooting
+
+Common issues and their solutions:
+
+### Docker Network Error
+
+If you see `network microservices declared as external, but could not be found`:
+
+```bash
+docker network create microservices
+```
+
+### Port Already in Use
+
+If port 8080 or 5173 is already in use:
+
+```bash
+# Find and kill the process using the port (Linux/Mac)
+lsof -i :8080
+kill -9 <PID>
+
+# Or change the port in the respective configuration file
+```
+
+### Services Not Starting
+
+Check the logs to diagnose issues:
+
+```bash
+cd backend
+docker-compose logs -f <service-name>
+```
+
+For more detailed troubleshooting, see [SETUP.md](SETUP.md#troubleshooting).
 
 ### Styling and Design
 
@@ -194,12 +256,96 @@ The frontend uses **Tailwind CSS v4** for a modern, responsive design:
 * Configuration settings are managed in a centralized location.
 * You can update application settings in the `config` directory.
 
+## ⚡ Performance Optimizations
+
+### Frontend Optimizations
+
+1. **Production Build**
+   - Code splitting and lazy loading
+   - Minification and tree-shaking
+   - Optimized assets with Vite
+
+2. **Caching Strategy**
+   - Browser caching for static assets
+   - Service worker for offline support (future enhancement)
+
+3. **Image Optimization**
+   - Use WebP format where possible
+   - Lazy load images below the fold
+
+### Backend Optimizations
+
+1. **Database Connection Pooling**
+   ```yaml
+   spring:
+     datasource:
+       hikari:
+         maximum-pool-size: 10
+         minimum-idle: 5
+   ```
+
+2. **JVM Tuning**
+   ```
+   JAVA_OPTS: -Xms512m -Xmx1024m -XX:+UseG1GC
+   ```
+
+3. **Enable Response Compression**
+   ```yaml
+   server:
+     compression:
+       enabled: true
+   ```
+
+### Docker Optimizations
+
+1. **Use BuildKit**
+   ```bash
+   export DOCKER_BUILDKIT=1
+   docker-compose up --build
+   ```
+
+2. **Multi-stage Builds**
+   - Already implemented in Dockerfiles
+   - Reduces image size significantly
+
+3. **Resource Limits**
+   ```yaml
+   deploy:
+     resources:
+       limits:
+         cpus: '1'
+         memory: 1G
+   ```
+
+For detailed optimization guides, see [SETUP.md](SETUP.md#optimizations).
+
 ## Contributing
 
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix.
 3. Commit and push your changes.
 4. Open a pull request with a detailed description.
+
+## 📚 Additional Documentation
+
+- **[Quick Start Guide](QUICKSTART.md)** - Get running in minutes! 🚀
+- **[Setup Guide](SETUP.md)** - Detailed installation and configuration instructions
+- **[Troubleshooting Guide](SETUP.md#troubleshooting)** - Common issues and solutions
+- **[Optimization Guide](SETUP.md#optimizations)** - Performance tuning recommendations
+
+## 🐛 Known Issues
+
+1. **Docker Network** - Requires manual creation of 'microservices' network (fixed by setup script)
+2. **Service Discovery** - Services may take 30-60 seconds to register with Eureka on first startup
+
+## 📝 Changelog
+
+### Latest Updates
+- ✅ Added comprehensive application screenshots
+- ✅ Created automated setup script
+- ✅ Enhanced documentation with troubleshooting guide
+- ✅ Added performance optimization recommendations
+- ✅ Fixed Docker network configuration issue
 
 ## License
 

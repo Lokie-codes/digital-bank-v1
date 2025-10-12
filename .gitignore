@@ -1,5 +1,7 @@
 # Ignore .env files in all directories
 *.env
+# But keep .env.example files
+!*.env.example
 
 # Ignore data folders in all directories
 **/data/
