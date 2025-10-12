@@ -9,5 +9,7 @@ spring:
 
 security:
   jwt:
-    secretKey: ${JWT_SECRET_KEY:supersecretdskjdbbvjkbdvbhaei78che87w7428c87hc4874h847h8c78787}
+    # JWT_SECRET_KEY must be set as an environment variable
+    # Generate a secure key with: openssl rand -base64 32
+    secretKey: ${JWT_SECRET_KEY}
     expirationTime: 3600000
