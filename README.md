@@ -9,7 +9,16 @@ Welcome to the Digital Bank project! This application is designed to provide a s
 
 The project consists of:
 - **Backend**: Microservices-based architecture using Spring Boot
+  - User Service
+  - Account Service
+  - Loan Service
+  - Transaction Service
+  - API Gateway
 - **Frontend**: Modern React application with Tailwind CSS
+  - Built with Vite for fast development
+  - Styled with Tailwind CSS v4 for modern UI/UX
+  - Responsive design for mobile, tablet, and desktop
+  - Component-based architecture for reusability
 
 <!-- Image of overall backend design -->
 
@@ -49,12 +58,27 @@ The project consists of:
 
 7. **Frontend**
 
-   * Modern React-based web application
-   * User authentication and registration
-   * Account management interface
-   * Loan application and tracking
-   * Transaction history and creation
-   * Responsive design with Tailwind CSS
+   * Modern React-based web application with Vite
+   * User authentication and registration with JWT
+   * Account management interface with real-time balance tracking
+   * Loan application and EMI tracking system
+   * Transaction history with advanced filtering
+   * **Modern UI/UX Design**:
+     - Gradient backgrounds and card designs
+     - Smooth animations and transitions
+     - Responsive layouts for all screen sizes
+     - Interactive hover effects and micro-interactions
+     - Loading states with animated spinners
+     - Icon-enhanced interfaces
+     - Modal dialogs with backdrop blur
+     - Color-coded status badges
+     - Professional form layouts with validation
+   * **Styling with Tailwind CSS v4**:
+     - Utility-first CSS framework
+     - Custom color schemes and gradients
+     - Responsive design breakpoints
+     - Dark-themed components with shadows
+     - Accessible color contrasts
 
 ## Getting Started
 
@@ -149,6 +173,21 @@ To run the frontend in development mode:
    ```bash
    npm run build
    ```
+
+### Styling and Design
+
+The frontend uses **Tailwind CSS v4** for a modern, responsive design:
+
+- **Color Scheme**: Blue and indigo gradients with professional gray tones
+- **Typography**: System fonts for optimal readability
+- **Components**: Consistent card-based layouts with shadows and borders
+- **Animations**: Smooth transitions and hover effects for better UX
+- **Responsive**: Mobile-first approach with breakpoints for all devices
+- **Icons**: SVG icons integrated throughout the interface
+- **Forms**: Enhanced input fields with focus states and validation
+- **Tables**: Styled data tables with alternating row colors
+- **Modals**: Backdrop blur effects for better focus
+- **Status Indicators**: Color-coded badges for different states
 
 ### Configuration
 
