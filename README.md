@@ -95,7 +95,27 @@ The project consists of:
 
 Get started with Digital Bank in minutes!
 
-### Option 1: Automated Setup (Recommended)
+**👉 New users**: See our [Quick Start Guide](QUICKSTART.md) for the fastest way to get running!
+
+### Option 1: Using Make (Easiest)
+
+If you have `make` installed:
+
+```bash
+# Clone and setup
+git clone https://github.com/Lokie-codes/digital-bank-v1.git
+cd digital-bank-v1
+
+# One-command setup
+make setup
+
+# Start services
+make start
+```
+
+See all available commands with `make help`
+
+### Option 2: Automated Setup Script
 
 ```bash
 # Clone the repository
@@ -118,7 +138,7 @@ npm run dev
 
 Visit **http://localhost:5173** to see the application!
 
-### Option 2: Manual Setup
+### Option 3: Manual Setup
 
 See the detailed [SETUP.md](SETUP.md) guide for manual installation and configuration.
 
@@ -308,6 +328,7 @@ For detailed optimization guides, see [SETUP.md](SETUP.md#optimizations).
 
 ## 📚 Additional Documentation
 
+- **[Quick Start Guide](QUICKSTART.md)** - Get running in minutes! 🚀
 - **[Setup Guide](SETUP.md)** - Detailed installation and configuration instructions
 - **[Troubleshooting Guide](SETUP.md#troubleshooting)** - Common issues and solutions
 - **[Optimization Guide](SETUP.md#optimizations)** - Performance tuning recommendations
