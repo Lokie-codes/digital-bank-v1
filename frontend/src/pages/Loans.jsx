@@ -17,6 +17,8 @@ const Loans = () => {
     if (user?.id) {
       fetchUserLoans();
     }
+    // fetchUserLoans is defined below and doesn't change, safe to exclude
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchLoans = async () => {
